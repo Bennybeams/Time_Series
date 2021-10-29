@@ -1,0 +1,87 @@
+---
+title: "TS - O2 Forecast"
+author: "Benjamin BERNARD"
+date: "28/10/2021"
+output: rmarkdown::github_document
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1.  **Dataset splitting**
+
+The test subset must have the size of the data we want to forecast.
+Here we want to predict the next 7 years so we keep only the last 7 years for the train subset.
+
+```{r}
+co2_train=window(co2,start=c(1959,1),end=c(1989,12))
+co2_test=window(co2,start=c(1990,1),end=c(1997,12))
+```
+
+We can plot both subset.
+
+```{r}
+plot(co2_train,xlim=c(1960,2010),ylim=c(300,400))
+lines(co2_test,lty=2)
+```
+
+2.  **Visual Analyse**
+
+We can see on the above plot that we have the following characteristics :
+
+-   A seasonality (values looks to have the same behavior over the time - increasing and decreasing)
+
+-   A trend (values grows along the dataset)
+
+3.  **Forecasting**
+
+Data looks quite easy to forecast.
+Let's try with the HoltWinters forecasting method.
+
+To create the model, we use hx() function with the following parameters :
+
+-   dataset to use (here for this step we will use co2_train as it's our training model)
+
+-   seasonal='additive' as the trend is increasing proportionally.
+    We could use 'multiplicative' in case of an exponential trend.
+
+-   h is the number of values to forecast after the dataset we choose.
+    96 here is the amount of values in the test set.
+
+Then we'll plot the whole dataset (co2_train in plain line, and co2_test in dotted line) plus the forecast to visualise the quality of our forecast.
+
+```{r}
+#install.packages("forecast")
+library(forecast)
+h=hw(co2_train,seasonal='additive',h=96)
+plot(co2_train,xlim=c(1985,2002),ylim=c(340,380))
+lines(co2_test,lty=2)
+lines(h$mean,col=2)
+accuracy(h)
+```
+
+We may try to use a Damped version :
+
+```{r}
+hd=hw(co2_train,seasonal='additive',damped=TRUE,h=96)
+plot(co2_train,xlim=c(1985,2002),ylim=c(340,380))
+lines(co2_test,lty=2)
+lines(hd$mean,col=2)
+lines(hd$mean,col=3)
+print(sqrt(mean((hd$mean-co2_test)^2)))
+```
+
+We can see that it's worse... So we will use our first model which forecast reasonably our dataset.
+Let's forecast 10 years.
+
+```{r}
+h=hw(co2,seasonal='additive',damped=FALSE,h=120)
+autoplot(co2,xlim=c(1985,2011),ylim=c(320,400))+autolayer(h)
+h
+```
+
+Great job, we predicted unknown values in the future of our dataset !
