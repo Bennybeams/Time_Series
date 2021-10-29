@@ -1,5 +1,5 @@
 # Time Series Forecast
-How to predict the future ? Mathematical R functions allows to get characteristics as seasonality, trend, and most important the correlation between values into a dataset to predict what will happen in the future.
+How to predict the future ? Mathematical R functions allows to get characteristics as seasonality, trend, and most important the correlation between features into a dataset to predict what will happen in the future.
 
 This project is made from some time series dataset studies in R :
 - How the dataset can be exploited to forecast future values ?
