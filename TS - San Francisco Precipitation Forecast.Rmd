@@ -1,0 +1,84 @@
+---
+title: "TS - San Francisco Precipitations"
+author: "Benjamin BERNARD"
+date: "28/10/2021"
+output: rmarkdown::github_document
+---
+
+On this page we'll forecast precipitations for the city of San Francisco.
+
+1.  **Dataset splitting**
+
+Let's download and split the dataset into train and test sets :
+
+```{r}
+data=scan(file="http://eric.univ-lyon2.fr/~jjacques/Download/DataSet/sanfran.dat",skip=1)
+sanfran<-ts(data,start=c(1932,1),end=c(1966,12),freq=12)
+library(forecast)
+sanfran_train=window(sanfran,,start=c(1932,1),end=c(1963,12))
+sanfran_test=window(sanfran,,start=c(1964,1),end=c(1966,12))
+```
+
+2.  **Data study and Model configuration**
+
+Now we can visualize both subsets
+
+```{r}
+plot(sanfran_train,xlim=c(1932,1970),ylim=c(0,120))
+lines(sanfran_test,lty=2)
+```
+
+Looks like we have a seasonal pattern here.
+
+Let's create a model and try it on the test set :
+
+```{r}
+library(forecast)
+h=hw(sanfran_train,damped=FALSE,h=36)
+plot(sanfran_train,xlim=c(1964,1967),ylim=c(0,120))
+lines(sanfran_test,lty=2)
+lines(h$mean,col=2)
+print(sqrt(mean((h$mean-sanfran_test)^2)))
+accuracy(h,sanfran_test)
+h
+```
+
+With this model the RMSE (Root mean square error) is : 15.99891.
+
+Obviously, we can also see if the model fits well or not just comparing the plots.
+
+Let's try a damped version to see if it fits better our test set.
+
+```{r}
+hd=hw(sanfran_train,damped=TRUE,h=36)
+plot(sanfran_train,xlim=c(1964,1967),ylim=c(0,120))
+lines(sanfran_test,lty=2)
+lines(hd$mean,col=3)
+print(sqrt(mean((hd$mean-sanfran_test)^2)))
+hd
+```
+
+We can see that the RMSE is slightly better. So we'll use this damped version to forecast unknown precipitations values.
+
+Let's see that adding both models to the same plot :
+
+```{r}
+plot(sanfran_train,xlim=c(1966,1967),ylim=c(10,70))
+lines(sanfran_test,lty=2)
+lines(hd$mean,col=3)
+lines(h$mean,col=4)
+```
+
+Not easy to see any difference between damped and undamped version. Hopefully we may compute the RMSE to compare both and find the best model.
+
+3.  **Forecast**
+
+Now we'll try to forecast the values after 1967, where our dataset stops.
+
+```{r}
+hf=hw(sanfran,seasonal='additive',damped=TRUE, h=24)
+plot (sanfran,xlim=c(1966,1969),ylim=c(0,120))+lines(hf$mean, col=5)
+#autoplot(sanfran,xlim=c(1964,1967),ylim=c(0,120))
+hf
+
+```
