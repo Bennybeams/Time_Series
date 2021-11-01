@@ -7,3 +7,5 @@ This project is made from some time series dataset studies in R :
 - How to choose the proper model which give us the best prediction
 
 That's not magic, that's just science :)
+
+Note : to push to Github, use the function gitcreds_set().
